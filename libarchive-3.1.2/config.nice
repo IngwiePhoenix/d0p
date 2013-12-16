@@ -1,0 +1,2 @@
+#!/bin/bash
+ ./configure --disable-bsdtar --disable-bsdcpio --enable-static --disable-shared --enable-silent-rules
