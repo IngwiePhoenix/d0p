@@ -5,9 +5,13 @@
 #define VERBOSITY_NORMAL 0
 #define VERBOSITY_QUIET -1
 #define VERBOSITY_VERBOSE 1
+#define AR_READING 0x1
+#define AR_WRITING 0x2
+#define dout cout << "[d0p] "
 
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <cstdlib>
 #include <ctime>
 #include <stdio.h>
@@ -31,12 +35,13 @@ class d0p {
 		string  *key; // random sequence, to seperate binary from header
 		archive *archive; // libarchive instance, actual d0p object :)
 		string  *targetName; // Path to the d0p file to read/write
-		//char    *list[]; // keep a list of things, we never know...
 		int		 verbosity;
+		int		 ar_method;
+		bool	 ar_exists;
 		
 	public:
 		// structors
-		d0p(string *, char * []); // target, and possibly files
+		d0p(string *, int); // target, and possibly files
 		~d0p(); // clean everything away and do some garbage collection
 		
 		// header work: wrap and unwrap the archive.
@@ -61,6 +66,7 @@ class d0p {
 // No-return function - bottom.
 void d0p_log(const char *msg) { cout << "[d0p] " << msg << endl; }
 void d0p_prog(const char *msg, int max, int cur) { cout << "[d0p: " << max << "/" << cur << "] " << msg << endl; }
+void version() { cout << D0P_VERSION << endl; }
 void help() {
 	cout << "d0p " << D0P_VERSION << endl;
 	cout << "By: Ingwie Phoenix <ingwie2000@googlemail.com>" << endl;
@@ -102,6 +108,21 @@ void help() {
 	cout << "  liblzma (from XZ Utils) " << LZMA_VERSION_STRING << endl;
 	cout << "  base64 AND yaml-cpp via CVS" << endl;
 }
+std::string get_working_path() {
+   char temp[255];
+   return ( getcwd(temp, 255) ? std::string( temp ) : std::string("") );
+}
+int file_exists(char *name);
+int file_exists(char *name) {
+	FILE *file = fopen(name, "r");
+    if (file) {
+        fclose(file);
+        return true;
+    } else {
+        return false;
+    }   
+}
+
 
 /*
 	Possible command line syntax:

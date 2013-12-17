@@ -54,14 +54,14 @@ buildIt() {
 	# Start with yaml-cpp
 	if [ ! -f "$ME/lib/libyaml-cpp.a" ]; then
 		cd $ME/yaml-cpp
-		$CXX -I$ME/include -c *.cpp
+		$CXX -I$ME/include -O3 -c *.cpp
 		ar cr libyaml-cpp.a *.o
 	fi
 
 	# Now base64
 	if [ ! -f "$ME/lib/libbase64.a" ]; then
 		cd $ME/base64
-		$CXX -I$ME/include/base64 -c *.cpp
+		$CXX -I$ME/include/base64 -O3 -c *.cpp
 		ar cr libbase64.a *.o
 	fi
 
@@ -74,8 +74,8 @@ buildIt() {
 	cd $ME/d0p
 	$CXX -I$ME/include/d0p -I$ME/include \
 		-L$ME/lib \
-		-lz -lbz2 -lxml2 -llzma -lbase64 -larchive \
-		d0p.cpp -o d0p
+		-lz -lbz2 -lxml2 -llzma -lbase64 -larchive -lstdc++ -liconv \
+		-O3 d0p.cpp -o d0p
 }
 
 cleanIt() {
