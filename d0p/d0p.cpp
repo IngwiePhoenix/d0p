@@ -1,4 +1,5 @@
 #include "d0p.hpp"
+#include <getopt.h>
 using namespace std;
 
 string uniqid() {
@@ -17,16 +18,16 @@ string uniqid() {
 }
 
 // structors
-d0p(string target, char *list[]) {
-	this->targetName = target;
-	this->list = list;
+d0p::d0p(string *targetName, char *list[]) {
+	this->targetName = targetName;
+	//this->list = list;
 }
-~d0p() {
+d0p::~d0p() {
 	delete    this->key;
-	delete    this->archive;
+	//delete    this->archive;
 	delete    this->targetName;
 	delete    this->outName;
-	delete [] this->list;
+	free(this->list);
 }
 
 
@@ -36,20 +37,19 @@ int d0p::wrap(YAML::Node *object) {
 
 YAML::Node *d0p::unwrap() { YAML::Node *node; return node; }
 		
-		// tar work
-		int addFile(string fileName);
-		int addFiles(...);
-		int listFiles();
-		int extractFile(string innerPath, string outerPath);
+// tar work
+int d0p::addFile(string fileName) { return 0; }
+int d0p::addFiles(char *flist[]) { return 0; }
+char * d0p::listFiles() { return ""; }
+int d0p::extractFile(string innerPath, string outerPath) { return 0; }
 		
-		// actual methods
-		int createPackage(); // call addFile and wrap several times
-							 // use -C switch in order to specify base-path that will later be treatened as "./".
-							 // otherwise use the specified path (typical tar behavior)
-		int explainPackage(); // pretty-print information about the package (unwrap+display)
-		int listPackage(); // use libarchive to list content
-		int extractPackage(); // extract files to specified path, treatening it as "./" otherwuse use cwd
+// actual methods
+int d0p::createPackage() { return 0; }
+int d0p::explainPackage() { return 0; }
+int d0p::listPackage() { return 0; }
+int d0p::extractPackage() { return 0; }
 
-int main() {
-	cout << "o3o" << endl;
+int main(int argc, char *argv[]) {
+	cout << "d0p by Ingwie Phoenix, 2013" << endl;
+	return 0;
 }

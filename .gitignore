@@ -21,3 +21,5 @@ include/archive_entry.h
 *.log
 
 share/*
+
+d0p/d0p

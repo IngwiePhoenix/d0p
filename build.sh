@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 # Building d0p
 cd $(dirname "$0")
 ME=$(pwd)
@@ -65,15 +67,15 @@ buildIt() {
 
 	# Collect selfmade libs
 	find $ME -name "*.a" | while read a; do
-		mv "$a" $ME/lib
+		cp "$a" $ME/lib
 	done
 
 	# Build d0p
 	cd $ME/d0p
 	$CXX -I$ME/include/d0p -I$ME/include \
 		-L$ME/lib \
-		-lz -lbz2 -lxml2 -llzma -lb64 -larchive \
-		-c d0p.cpp
+		-lz -lbz2 -lxml2 -llzma -lbase64 -larchive \
+		d0p.cpp -o d0p
 }
 
 cleanIt() {

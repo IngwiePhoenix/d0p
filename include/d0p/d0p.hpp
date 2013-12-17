@@ -31,7 +31,7 @@ class d0p {
 		
 	public:
 		// structors
-		d0p(string target, char *list[]); // target, and possibly files
+		d0p(string *, char * []); // target, and possibly files
 		~d0p(); // clean everything away and do some garbage collection
 		
 		// header work: wrap and unwrap the archive.
@@ -40,8 +40,8 @@ class d0p {
 		
 		// tar work
 		int addFile(string fileName);
-		int addFiles(...);
-		int listFiles();
+		int addFiles(char *flist[]);
+		char * listFiles();
 		int extractFile(string innerPath, string outerPath);
 		
 		// actual methods
