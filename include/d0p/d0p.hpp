@@ -1,6 +1,11 @@
 #ifndef HAVE_D0P_H
 #define HAVE_D0P_H
 
+#define D0P_VERSION "0.1"
+#define VERBOSITY_NORMAL 0
+#define VERBOSITY_QUIET -1
+#define VERBOSITY_VERBOSE 1
+
 #include <iostream>
 #include <string>
 #include <cstdlib>
@@ -25,9 +30,9 @@ class d0p {
 	private:
 		string  *key; // random sequence, to seperate binary from header
 		archive *archive; // libarchive instance, actual d0p object :)
-		string  *targetName; // Name of the d0p file to read/write
-		string  *outName; // name of the resulting extracted archive. If none, constructor will replace .d0p by .tgz
-		char    *list[];
+		string  *targetName; // Path to the d0p file to read/write
+		//char    *list[]; // keep a list of things, we never know...
+		int		 verbosity;
 		
 	public:
 		// structors
@@ -52,6 +57,51 @@ class d0p {
 		int listPackage(); // use libarchive to list content
 		int extractPackage(); // extract files to specified path, treatening it as "./" otherwuse use cwd
 };
+
+// No-return function - bottom.
+void d0p_log(const char *msg) { cout << "[d0p] " << msg << endl; }
+void d0p_prog(const char *msg, int max, int cur) { cout << "[d0p: " << max << "/" << cur << "] " << msg << endl; }
+void help() {
+	cout << "d0p " << D0P_VERSION << endl;
+	cout << "By: Ingwie Phoenix <ingwie2000@googlemail.com>" << endl;
+	cout << endl;
+	cout << "Usage: d0p [verb] [args]" << endl;
+	cout << endl;
+	cout << "Verbs include:" << endl;
+	cout << "    create [-c rootDir] $newPackage.d0p --header=file file1 file2 file3 ..." << endl;
+	cout << "        - Create a package" << endl;
+	cout << "    create-flat [-c rootDir] $newPackage.tar.xz file1 file2 file3 ..." << endl;
+	cout << "        - Create a tar.xz archive, used as the default by d0p. Use the offical XZ Utils to manipulate those." << endl;
+	cout << "    add [-c rootDir] $targetPackage.d0p file1 file2 file3 ..." << endl;
+	cout << "        - Add a file to a package" << endl;
+	cout << "    delete $targetPackage.d0p innerPath1 innerPath2 innerPath3 ..." << endl;
+	cout << "        - Delete a file within an archive by its inner path" << endl;
+	cout << "    xtract [-c rootDir] $targetPackage.d0p" << endl;
+	cout << "        - Extract all files of archive into current folder" << endl;
+	cout << "          Optionally you can add -c to specify the 'destination root'. So if you want to unpack into /usr/local, run:" << endl;
+	cout << "               $ d0p xtract -c /usr/local package.d0p" << endl;
+	cout << "    list $targetPackage.d0p" << endl;
+	cout << "        - List contents of packaged archive" << endl;
+	cout << "    explain $targetPackage.d0p" << endl;
+	cout << "        - Show the package header. As this will output valid YAML, you may pipe it into another programm:" << endl;
+	cout << "               $ d0p explain package.d0p | myProgramm -" << endl;
+	cout << "           Or redirect the output into a new file, to save the header." << endl;
+	cout << "     wrap $newPackage.d0p --header=file --archive=archive.tar" << endl;
+	cout << "        - Wrap an archive and header into a package." << endl;
+	cout << "          Note, that d0p uses tar.xz by default. But since it utilizes libarchive, it can handle everything." << endl;
+	cout << "          We encourage you to use create-flat to get a compatible archive." << endl;
+	cout << "     unwrap $targetPackage.d0p [--out-header=file] [--out-archive=file]" << endl;
+	cout << "        - Unwrap the header, and produce the two original files - archive and header." << endl;
+	cout << "          If no out-header or out-archive is given, we'll use the package's basename and add .yaml and .tar.xz to it." << endl;
+	cout << "     help" << endl;
+	cout << "        - This help." << endl;
+	cout << endl;
+	cout << "If you supply --verbose or --quiet before any verb, d0p will become either very verbose, or very quiet." << endl;
+	cout << "Based on: " << endl;
+	cout << "  " << ARCHIVE_VERSION_STRING << endl;
+	cout << "  liblzma (from XZ Utils) " << LZMA_VERSION_STRING << endl;
+	cout << "  base64 AND yaml-cpp via CVS" << endl;
+}
 
 /*
 	Possible command line syntax:
