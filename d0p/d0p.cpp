@@ -44,6 +44,17 @@ d0p::~d0p() {
 		archive_write_free(this->archive);
 }
 
+int d0p::prepairWrite() {
+	// If we create, we need to open our archive in write mode.
+	this->archive = archive_write_new();
+	archive_write_add_filter_xz(this->archive); // strong.
+	return archive_write_open_filename(this->archive, (char*)targetName->c_str());
+}
+void d0p::endWrite() {
+	archive_write_close(this->archive);
+	archive_write_free(this->archive);
+}
+
 
 int d0p::wrap(YAML::Node *object) { 
 	return 0;
@@ -52,19 +63,68 @@ int d0p::wrap(YAML::Node *object) {
 YAML::Node *d0p::unwrap() { YAML::Node *node; return node; }
 		
 // tar work
-int d0p::addFile(string fileName) { cout << "File: " << fileName << endl; return 0; }
+int d0p::addFile(string fileName) {
+	cout << "File: " << fileName << endl;
+	this->list.push_back(fileName);
+	return 0;
+}
 int d0p::addFiles(char *flist[]) { return 0; }
 char * d0p::listFiles() { return NULL; }
 int d0p::extractFile(string innerPath, string outerPath) { return 0; }
 		
 // actual methods
-int d0p::createPackage() { return 0; }
+int d0p::createTarXZ() {
+	if(this->verbosity == VERBOSITY_VERBOSE) dout << "Creating target tar.xz" << endl;
+	archive_entry *entry;
+  	struct stat st;
+  	char buff[8192]; // 8 byte
+  	int len;
+  	FILE *fd;
+  	
+  	// Now, open an archive
+  	this->prepairWrite();
+  	
+	for(std::vector<int>::size_type i = 0; i != this->list.size(); i++) {
+		// string -> char*
+		char *filename = (char*)this->list[i].c_str();
+    	stat(filename, &st);
+    	entry = archive_entry_new();
+    	
+    	archive_entry_set_pathname(entry, filename);
+    	archive_entry_set_size(entry, st.st_size);
+    	
+    	cerr << "File " << filename << " has size " << st.st_size << endl;
+    	
+    	archive_entry_set_filetype(entry, AE_IFREG);
+    	archive_entry_set_perm(entry, st.st_mode);
+    	
+    	archive_write_header(this->archive, entry);
+
+    	// stream from file to archive
+    	fd = fopen(filename, "r");
+    	if (fd==NULL) {fputs("File error",stderr); exit (1);}
+    	
+    	// stream char to archive
+    	while(!feof(fd)) {
+    		size_t bytes_read = fread(&buff, sizeof(buff), 1, fd);
+    		cerr << "Read some bytes:" << bytes_read << endl;
+    		archive_write_data(this->archive, &buff, sizeof(buff)); // <-------
+    	}
+    	fclose(fd);
+    	
+    	archive_entry_free(entry);
+	}
+	
+	// free and dealloc it
+	this->endWrite();
+	
+	return D0P_OK;
+}
 int d0p::explainPackage() { return 0; }
 int d0p::listPackage() { return 0; }
 int d0p::extractPackage() { return 0; }
 
 int main(int argc, char *argv[]) {
-	//char *inputList = new char[];
 	string targetName;
 	int verbosity=VERBOSITY_NORMAL;
 	int i=1; // 0 is the program itself - and thus useless if called via $PATH
@@ -89,7 +149,7 @@ int main(int argc, char *argv[]) {
 		i++;
 		if(strcmp(verb,"help") == 0) { help(); exit(0); }
 		if(strcmp(verb,"version") == 0) { version(); exit(0); }
-		if(strcmp(verb,"create") == 0 && i+1<argc) {
+		if(strcmp(verb,"create-flat") == 0 && i+1<argc) {
 			string t = string(argv[i]);
 			$d0p = new d0p(&t,verbosity);
 			string rootPath;
@@ -106,9 +166,10 @@ int main(int argc, char *argv[]) {
 			}
 			chdir(rootPath.c_str());
 			for(; i<argc; i++) $d0p->addFile(argv[i]);
-			return $d0p->createPackage();
+			return $d0p->createTarXZ();
 		}
 	} else help();
 	
+	free($d0p);
 	return 0;
 }
